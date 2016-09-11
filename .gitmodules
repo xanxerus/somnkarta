@@ -1,0 +1,6 @@
+[submodule "jQuery-Mapael"]
+	path = jQuery-Mapael
+	url = https://github.com/neveldo/jQuery-Mapael.git
+[submodule "suncalc"]
+	path = suncalc
+	url = https://github.com/mourner/suncalc.git
