@@ -1,0 +1,79 @@
+<html>
+<head>
+	<title>Somnkarta Test Page</title>
+
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src="suncalc/suncalc.js"></script>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+	<script>
+		function getFormData(){
+			var ret = {};
+			var ser = $('form').serializeArray();
+			for(var i = 0; i < ser.length; i++)
+				ret[ser[i].name] = Number(ser[i].value);
+			ret['month'] -= 1
+			return ret;
+		}
+
+		function showThings(){
+			document.getElementById("test-div").innerHTML = "";
+			var form = getFormData();
+			//~ var date = new Date(Date.UTC(form.year, form.month, form.day, form.hour, form.minute));
+			var date = new Date(Date.UTC(2016, 5, 15, 12, 30));
+
+			//~ for(var lon = -180; lon <= 180; lon += 15){
+				for(var lat = -90; lat <= 90; lat += 5){
+					var calc = SunCalc.getTimes(date, lat, 0);
+					//~ document.getElementById("test-div").innerHTML += lon + ", " + lat + " : ";
+					document.getElementById("test-div").innerHTML += lat + " :  " + calc.sunrise;
+					document.getElementById("test-div").innerHTML += "<br>";
+				}
+			//~ }
+		}
+
+	</script>
+
+</head>
+
+<body>
+
+<form id="form" onsubmit="showThings(); return false;">
+<table>
+<!--
+	<tr>
+		<td align="right">Latitude:</td>
+		<td><input type="text" name="latitude"></td>
+	</tr>
+	<tr>
+		<td align="right">Longitude:</td>
+		<td><input type="text" name="longitude"></td>
+	</tr>
+-->
+	<tr>
+		<td align="right">Year:</td>
+		<td><input type="text" name="year"></td>
+	</tr>
+	<tr>
+		<td align="right">Month:</td>
+		<td><input type="text" name="month"></td>
+	</tr>
+	<tr>
+		<td align="right">Day:</td>
+		<td><input type="text" name="day"></td>
+	</tr>
+	<tr>
+		<td align="right">Military Hour:</td>
+		<td><input type="text" name="hour"></td>
+	</tr>
+	<tr>
+		<td align="right">Minute:</td>
+		<td><input type="text" name="minute"></td>
+	</tr>
+</table>
+<input type="submit">
+</form>
+
+<div id="test-div"></div>
+</body>
+</html>

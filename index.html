@@ -1,0 +1,107 @@
+<html>
+<head>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+	<script>
+		//Constants
+		var URL = 'https://docs.google.com/spreadsheets/d/1fUBozNnzFG0QqYl5J66RMtWGGsdn_z0tpYCyAJbQDE4/gviz/tq?gid=0&headers=1&tq=';
+		var DAY_INTERVAL = 14;
+		var INTERVAL_DELAY = 300;
+		var ANIMATION_DELAY = 50;
+		var OUTER_EXTRA_DELAY = 2000;
+		
+		//Load library and data file
+		google.charts.load('current', {'packages':['corechart']});
+		google.charts.setOnLoadCallback(function(){
+			$(document).ready(function() { new google.visualization.Query(URL + encodeURIComponent('SELECT A, D'))
+				.send(loopChart)});
+		});
+
+		//Loops drawChart
+		function loopChart(response){
+			document.getElementById("chart_div").innerHTML = "Processing data";
+			var data = response.getDataTable();
+			var options = { 
+				height:500,
+				width:900,
+				series: {
+					0: {
+						type:'bars'
+					},
+					1: {
+						type: 'line',
+						color: 'grey',
+						lineWidth: 0,
+						pointSize: 0,
+						visibleInLegend: false
+					}
+				},
+				animation:{
+					startup: true,
+					duration: ANIMATION_DELAY,
+					easing: 'linear',
+				},
+				vAxis:{
+					maxValue:250,
+					gridlines:{
+						count:-1
+					}
+				},
+				legend:{
+					position:'none'
+				}
+			};
+			var OUTER_DELAY = data.getNumberOfRows() / DAY_INTERVAL * (INTERVAL_DELAY + ANIMATION_DELAY) + OUTER_EXTRA_DELAY;
+			drawChart(data, options);
+			var outerInterval = setInterval(function () { drawChart(data, options); }, OUTER_DELAY);
+		}
+
+		//Animates chart, iterating through data
+		function drawChart(data, options){
+			var chart = new google.visualization.ComboChart(document.getElementById('chart_div'));
+			var hist = new google.visualization.DataTable();
+			hist.addColumn('string', 'Person');
+			hist.addColumn('number', 'Frequency');
+			hist.addColumn({type:'number', role: 'annotation'});
+			
+			var csvi = -1;
+			var intervalID = setInterval(function(){
+				for(var ri = 0; ri < DAY_INTERVAL; ri++){
+					csvi++;
+					if(csvi >= data.getNumberOfRows()){
+						clearInterval(intervalID);
+						break;
+					}
+					
+					var person = data.getValue(csvi, 1);
+					options.title = "Histogram of person from Sat Jun 07 2014 to " + (""+data.getValue(csvi, 0)).substring(0, 15);
+					var r = -1;
+					for(var i = 0; i < hist.getNumberOfRows(); i++)
+						if(person == hist.getValue(i, 0)){
+							r = i;
+							break;
+						}
+					
+					if(r >= 0){
+						hist.setCell(r, 1, 1 + hist.getValue(r, 1));
+						hist.setCell(r, 2, 1 + hist.getValue(r, 2));
+					}
+					else
+						hist.addRow([person, 1, 1]);
+				}
+				hist.sort({column: 1});
+				chart.draw(hist, options);
+			}, INTERVAL_DELAY);
+		}
+
+	</script>
+
+</head>
+<body>
+<div id="chart_div"> Loading data </div>
+<!--
+<div id="thingy_div"/>
+-->
+</body>
+</html>
