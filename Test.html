@@ -32,6 +32,27 @@
 			//~ }
 		}
 
+	function latitudeSearch(duration, longitude=0, northern = 90, southern = -90){
+		var southern = -90;
+		var northern = 90;
+		var increasing = A(-10) < A(10); 
+		var pot;
+
+		while(southern < northern){
+			pot = (southern+northern)/2;
+			a = A(pot);
+			
+			if(a < duration && increasing || a > duration && !increasing)
+				southern = pot;
+			else if(a > duration && increasing || a < duration && !increasing)
+				northern = pot;
+			else
+				break;
+		}
+
+		return pot
+	}
+
 	</script>
 
 </head>
