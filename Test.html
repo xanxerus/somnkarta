@@ -7,6 +7,10 @@
 	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 	<script>
+		document.getElementById("form").onsubmit = function (event) { event.preventDefault(); };
+		
+		var MS_PER_MINUTE = 60000;
+		
 		function getFormData(){
 			var ret = {};
 			var ser = $('form').serializeArray();
@@ -17,41 +21,64 @@
 		}
 
 		function showThings(){
-			document.getElementById("test-div").innerHTML = "";
 			var form = getFormData();
-			//~ var date = new Date(Date.UTC(form.year, form.month, form.day, form.hour, form.minute));
-			var date = new Date(Date.UTC(2016, 5, 15, 12, 30));
-
-			//~ for(var lon = -180; lon <= 180; lon += 15){
-				for(var lat = -90; lat <= 90; lat += 5){
-					var calc = SunCalc.getTimes(date, lat, 0);
-					//~ document.getElementById("test-div").innerHTML += lon + ", " + lat + " : ";
-					document.getElementById("test-div").innerHTML += lat + " :  " + calc.sunrise;
-					document.getElementById("test-div").innerHTML += "<br>";
-				}
-			//~ }
+			var date = new Date(Date.UTC(form.year, form.month, form.day));
+			var duration = Date.UTC(0, 0, 0, form.hour, form.minute);
+			document.getElementById("test-div").innerHTML = "Kitty <br>";
+			latitudeSearch(date, duration);//, form.longitude);
 		}
 
-	function latitudeSearch(duration, longitude=0, northern = 90, southern = -90){
-		var southern = -90;
-		var northern = 90;
-		var increasing = A(-10) < A(10); 
-		var pot;
+		function latitudeSearch(date, duration, longitude=0){
+			document.getElementById("test-div").innerHTML = "Searching latitudes <br>";
+			var southern = -90;
+			var northern = 90;
+			var increasing = A(date, -10, longitude) < A(date, 10, longitude); //never fails
+			var pot;
 
-		while(southern < northern){
-			pot = (southern+northern)/2;
-			a = A(pot);
+			while(southern < northern){
+				pot = (southern+northern)/2;
+				a = A(date, pot, longitude);
+				document.getElementById("test-div").innerHTML += "Date: " + date + " Latitude: " + pot + " Longitude: " + longitude + " Duration: " + a + "<br>";
+				
+				if(a != undefined && tol(a, duration, MS_PER_MINUTE))
+					return pot;
+				
+				if(a < duration && increasing || a > duration && !increasing || a == undefined && !increasing)
+					southern = pot;
+				else if(a > duration && increasing || a < duration && !increasing || a==undefined && increasing)
+					northern = pot;
+			}
+
+			alert('Something stupid happened');
+		}
+
+		function tol(a, b, epsilon){
+			return abs(a-b) <= epsilon;
+		}
+		
+		function A(date, latitude, longitude){
+			var originalDate = new Date(date.toUTC());
+			var day = date.getDay();
+			var times = SunCalc.getTimes(date, latitude, longitude);
+
+			while(times.sunrise.getDay() != day){
+				date.setHours(date.getHours() + ((times.sunrise < originalDate) ? 12 : -12));
+				times = SunCalc.getTimes(date, latitude, longitude);
+			}
 			
-			if(a < duration && increasing || a > duration && !increasing)
-				southern = pot;
-			else if(a > duration && increasing || a < duration && !increasing)
-				northern = pot;
-			else
-				break;
-		}
+			var sunrise = times.sunrise;
 
-		return pot
-	}
+			while(times.sunset.getDay() != day){
+				date.setHours(date.getHours() + ((times.sunset < originalDate) ? 12 : -12));
+				times = SunCalc.getTimes(date, latitude, longitude);
+			}
+			
+			var sunset = times.sunset;
+			
+			if(isNaN(sunrise) || isNaN(sunset))
+				return undefined;
+			return sunset-sunrise;
+		}
 
 	</script>
 
@@ -59,7 +86,7 @@
 
 <body>
 
-<form id="form" onsubmit="showThings(); return false;">
+<form id="form">
 <table>
 <!--
 	<tr>
