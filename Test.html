@@ -2,91 +2,22 @@
 <head>
 	<title>Somnkarta Test Page</title>
 
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-	<script src="suncalc/suncalc.js"></script>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script type="text/javascript" src="suncalc/suncalc.js"></script>
+	<script type="text/javascript" src="somnkarta.js"></script>
 
 	<script>
-		document.getElementById("form").onsubmit = function (event) { event.preventDefault(); };
-		
-		var MS_PER_MINUTE = 60000;
-		
-		function getFormData(){
-			var ret = {};
-			var ser = $('form').serializeArray();
-			for(var i = 0; i < ser.length; i++)
-				ret[ser[i].name] = Number(ser[i].value);
-			ret['month'] -= 1
-			return ret;
-		}
-
-		function showThings(){
-			var form = getFormData();
-			var date = new Date(Date.UTC(form.year, form.month, form.day));
-			var duration = Date.UTC(0, 0, 0, form.hour, form.minute);
-			document.getElementById("test-div").innerHTML = "Kitty <br>";
-			latitudeSearch(date, duration);//, form.longitude);
-		}
-
-		function latitudeSearch(date, duration, longitude=0){
-			document.getElementById("test-div").innerHTML = "Searching latitudes <br>";
-			var southern = -90;
-			var northern = 90;
-			var increasing = A(date, -10, longitude) < A(date, 10, longitude); //never fails
-			var pot;
-
-			while(southern < northern){
-				pot = (southern+northern)/2;
-				a = A(date, pot, longitude);
-				document.getElementById("test-div").innerHTML += "Date: " + date + " Latitude: " + pot + " Longitude: " + longitude + " Duration: " + a + "<br>";
-				
-				if(a != undefined && tol(a, duration, MS_PER_MINUTE))
-					return pot;
-				
-				if(a < duration && increasing || a > duration && !increasing || a == undefined && !increasing)
-					southern = pot;
-				else if(a > duration && increasing || a < duration && !increasing || a==undefined && increasing)
-					northern = pot;
-			}
-
-			alert('Something stupid happened');
-		}
-
-		function tol(a, b, epsilon){
-			return abs(a-b) <= epsilon;
-		}
-		
-		function A(date, latitude, longitude){
-			var originalDate = new Date(date.toUTC());
-			var day = date.getDay();
-			var times = SunCalc.getTimes(date, latitude, longitude);
-
-			while(times.sunrise.getDay() != day){
-				date.setHours(date.getHours() + ((times.sunrise < originalDate) ? 12 : -12));
-				times = SunCalc.getTimes(date, latitude, longitude);
-			}
-			
-			var sunrise = times.sunrise;
-
-			while(times.sunset.getDay() != day){
-				date.setHours(date.getHours() + ((times.sunset < originalDate) ? 12 : -12));
-				times = SunCalc.getTimes(date, latitude, longitude);
-			}
-			
-			var sunset = times.sunset;
-			
-			if(isNaN(sunrise) || isNaN(sunset))
-				return undefined;
-			return sunset-sunrise;
-		}
-
+	
+	//~ document.getElementById("form").onsubmit = function (event) { event.preventDefault(); }; //showThings(); };
+	
 	</script>
 
 </head>
 
 <body>
 
-<form id="form">
+<form id="form" onsubmit="showThings('test-div'); return false;">
 <table>
 <!--
 	<tr>
