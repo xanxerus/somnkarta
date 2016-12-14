@@ -4,55 +4,16 @@
 
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-	<script type="text/javascript" src="suncalc/suncalc.js"></script>
+	<script type="text/javascript" src="sun.js"></script>
 	<script type="text/javascript" src="somnkarta.js"></script>
-
+	
 	<script>
-	
-	//~ document.getElementById("form").onsubmit = function (event) { event.preventDefault(); }; //showThings(); };
-	
+	$(document).ready(showThings);
 	</script>
-
+	
 </head>
 
 <body>
-
-<form id="form" onsubmit="showThings('test-div'); return false;">
-<table>
-<!--
-	<tr>
-		<td align="right">Latitude:</td>
-		<td><input type="text" name="latitude"></td>
-	</tr>
-	<tr>
-		<td align="right">Longitude:</td>
-		<td><input type="text" name="longitude"></td>
-	</tr>
--->
-	<tr>
-		<td align="right">Year:</td>
-		<td><input type="text" name="year"></td>
-	</tr>
-	<tr>
-		<td align="right">Month:</td>
-		<td><input type="text" name="month"></td>
-	</tr>
-	<tr>
-		<td align="right">Day:</td>
-		<td><input type="text" name="day"></td>
-	</tr>
-	<tr>
-		<td align="right">Military Hour:</td>
-		<td><input type="text" name="hour"></td>
-	</tr>
-	<tr>
-		<td align="right">Minute:</td>
-		<td><input type="text" name="minute"></td>
-	</tr>
-</table>
-<input type="submit">
-</form>
-
 <div id="test-div"></div>
 </body>
 </html>

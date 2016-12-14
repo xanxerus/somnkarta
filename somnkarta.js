@@ -1,25 +1,16 @@
-
 var MS_PER_MINUTE = 60000;
 var DESIRED_EPSILON = MS_PER_MINUTE/2;
+var divname = "test-div"
+//~ var form = new Date();
+//~ var date = new Date(Date.UTC(form.year, form.month, form.day));
+var date = new Date(Date.UTC(2016, 12, 13));
+var duration = 0; //form.hour*60*MS_PER_MINUTE + form.minute*MS_PER_MINUTE;
+var latitude = 32.989924;
+var longitude = -96.751620;
 
-function getFormData(){
-	var ret = {};
-	var ser = $('form').serializeArray();
-	for(var i = 0; i < ser.length; i++)
-		ret[ser[i].name] = Number(ser[i].value);
-	return ret;
-}
-
-function showThings(divname){
-	div = document.getElementById(divname);
-	var form = getFormData();
-	var date = new Date(Date.UTC(form.year, form.month-1, form.day+1));
-	var duration = form.hour*60*MS_PER_MINUTE + form.minute*MS_PER_MINUTE;
-	
-	//~ var times = SunCalc.getTimes(date, form.latitude, form.longitude);
-	//~ div.innerHTML += times.sunrise + "\t" + times.sunset + "<br>";
-	div.innerHTML = "";
-	latitudeSearch(date, duration, 0, div);
+function showThings(){
+	var div = document.getElementById(divname);
+	div.innerHTML = JSON.stringify(riseset(latitude, longitude, date));
 }
 
 function latitudeSearch(date, duration, longitude=0, div=null){
@@ -32,7 +23,6 @@ function latitudeSearch(date, duration, longitude=0, div=null){
 	var pot;
 
 	while(southern < northern){
-		//~ alert("moo " + duration);
 		pot = (southern+northern)/2;
 		a = A(date, pot, longitude);
 		if(div != null)
@@ -68,4 +58,3 @@ function A(date, latitude, longitude){
 
 	return sunset-sunrise;
 }
-
