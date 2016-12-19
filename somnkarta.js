@@ -1,13 +1,6 @@
-var date = new Date(); //Date.UTC(2016, 11, 14));
-var duration = 8*60*MS_PER_MINUTE;
-//~ var latitude = 32.989924;
-//~ var longitude = -96.751620;
-var latitude = 65;
-var longitude = -90;
 var div = null;
 
 function chartThings(){
-	div = document.getElementById("test-div");
 	var URL = 'https://docs.google.com/spreadsheets/d/1-5iMHMlFECK3dpUeOvYkbnPGG9cF_Q6JvmKJT3hG8Vs/edit?usp=sharing';
 	
 	//Load library and data file
@@ -52,13 +45,10 @@ function chartThings2(response){
 
 function showThings(){
 	div = document.getElementById("test-div");
-	//~ var m = riseset(date, longitude, latitude);
-	//~ div.innerHTML += "Longitude: " + longitude + "<br>";
-	//~ div.innerHTML += "Latitude: " + latitude + "<br>";
-	//~ div.innerHTML += "Rise: " + m.rise + "<br>";
-	//~ div.innerHTML += "Set: " + m.set + "<br>";
-	//~ difftest(date, m.set, m.rise);
-	gradient_descent(new Date(), new Date(2016, 11, 19, 17, 23), new Date(2016, 11, 19, 7, 26), true);
+	var rise = new Date(2016, 11, 19, 7, 26);
+	var set = new Date(2016, 11, 19, 17, 23);
+	difftest(floordate(rise), set, rise);
+	gradient_descent(floordate(rise), set, rise, true);
 }
 
 function f2d(number, max=1, min=0, greyscale=false){
@@ -144,7 +134,7 @@ function gradient_descent(n, s, r, verbose=false){
 		buffer += "<tr><td>" + i + "</td><td>" + l + "</td><td>" + phi + "</td><td>" + jtog(R(l, phi))  + "</td><td>" +  jtog(S(l, phi))  + "</td><td>" +  Q(l, phi) + "</td></tr></table>";
 		div.innerHTML += buffer;
 	}
-	
+
 	return {'l':l, 'phi':phi, 's':jtog(S(l, phi)), 'r':jtog(R(l, phi)), 'i':i};
 }
 
