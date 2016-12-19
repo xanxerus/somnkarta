@@ -113,13 +113,12 @@ function Q_phi(l, phi){
 		+  2 * R_phi(l, phi) * (R(l, phi) - r);
 }
 
-
 function M_l(l){
 	return -c2/360* Math.PI / 180;
 }
 
 function C_l(l){
-	return c3*M_l(l)*cos(M(l)) + c4*2*M_l(l)*Math.cos(2*M(l)) + c5*3*M_l(l)*cos(3*M(l));
+	return c3*M_l(l)*Math.cos(M(l)) + c4*2*M_l(l)*Math.cos(2*M(l)) + c5*3*M_l(l)*Math.cos(3*M(l));
 }
 
 function L_l(l){
@@ -135,33 +134,33 @@ function Delta_l(l){
 }
 
 function U(l){
-	return c10 * sin(L(l));
+	return c10 * Math.sin(L(l));
 }
 
 function U_l(l){
 	return c1 * L_l(l) * Math.cos(L(l));
 }
 
-function W_l(l){
-	return -V_l(l) / Math.sqrt(1 - Math.pow(V(l), 2));
+function W_l(l, phi){
+	return -V_l(l, phi) / Math.sqrt(1 - Math.pow(V(l, phi), 2));
 }
 
 function V(l, phi){
-	return (c11 - Math.sin(phi)*Math.sin(Delta(l))) / (Math.cos(phi)*Math.cos(Delta(l)));
+	return (c11 - Math.sin(phi*Math.PI/180)*Math.sin(Delta(l))) / (Math.cos(phi*Math.PI/180)*Math.cos(Delta(l)));
 }
 
 function V_l(l, phi){
-	return Delta_l(l) * (Math.cos(phi) * Math.cos(Delta(l)) * (-Math.sin(phi)) * Math.cos(Delta(l)) 
-		+  (c11-Math.sin(phi)*Math.sin(Delta(l)))*Math.cos(phi)*Math.sin(Delta(l)))
-	 / Math.pow(Math.cos(phi)*Math.cos(Delta(l)), 2);
+	return Delta_l(l) * (Math.cos(phi*Math.PI/180) * Math.cos(Delta(l)) * (-Math.sin(phi*Math.PI/180)) * Math.cos(Delta(l)) 
+		+  (c11-Math.sin(phi*Math.PI/180)*Math.sin(Delta(l)))*Math.cos(phi*Math.PI/180)*Math.sin(Delta(l)))
+	 / Math.pow(Math.cos(phi*Math.PI/180)*Math.cos(Delta(l)), 2);
 }
 
 function S_l(l, phi){
-	return J_l(l) + W_l(l) / 360;
+	return J_l(l) + W_l(l, phi) / 360;
 }
 
 function R_l(l, phi){
-	return J_l(l) - W_l(l) / 360;
+	return J_l(l) - W_l(l, phi) / 360;
 }
 
 function S_phi(l, phi){
@@ -177,7 +176,5 @@ function W_phi(l, phi){
 }
 
 function V_phi(l, phi){
-	return (Math.cos(phi) * Math.cos(Delta(l)) * (-Math.cos(phi)) * Math.sin(Delta(l)) 
-		+  (c11-Math.sin(phi)*Math.sin(Delta(l)))*(-Math.sin(phi))*Math.cos(Delta(l)))
-	 / Math.pow(Math.cos(phi)*Math.cos(Delta(l)), 2);
+	return (c11 - Math.sin(phi*Math.PI/180)*Math.sin(Delta(l))) / Math.pow(Math.cos(phi*Math.PI/180)*Math.cos(Delta(l)), 2) * Math.sin(phi*Math.PI/180) - Math.cos(phi*Math.PI/180)*Math.sin(Delta(l));
 }
