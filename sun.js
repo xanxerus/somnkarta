@@ -40,6 +40,12 @@ function floordate(g){
 	return new Date(g.getFullYear(), g.getMonth(), g.getDate());
 }
 
+function initiate(n, s, r){
+	setN(n);
+	setS(s);
+	setR(r);
+}
+
 function setN(given){
 	n = floorgtoj(given) - 2451545.0008;
 }

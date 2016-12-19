@@ -2,134 +2,110 @@ var date = new Date(); //Date.UTC(2016, 11, 14));
 var duration = 8*60*MS_PER_MINUTE;
 //~ var latitude = 32.989924;
 //~ var longitude = -96.751620;
-var latitude = 0;
-var longitude = 0;
+var latitude = 65;
+var longitude = -90;
 var div = null;
 
-function f2c(number, max=1, min=0){
-	if(isNaN(number))
-		return "#00FF00";
-
-	var d = max != min ? Math.abs(Math.round(255 * (1-(Math.abs(number)-Math.abs(min)) / (Math.abs(max)-Math.abs(min))))) : 255;
-	var h = Math.abs(d) < 256 ? Math.abs(d).toString(16) : 'FF';
-    if(h.length < 2)
-		h = '0' + h;
-
-	return "#" + h+h+h;
+function chartThings(){
+	div = document.getElementById("test-div");
+	var URL = 'https://docs.google.com/spreadsheets/d/1-5iMHMlFECK3dpUeOvYkbnPGG9cF_Q6JvmKJT3hG8Vs/edit?usp=sharing';
+	
+	//Load library and data file
+	google.charts.load('current', {'packages':['corechart']});
+	google.charts.setOnLoadCallback(function(){
+		$(document).ready(function() { new google.visualization.Query(URL + encodeURIComponent(''))
+			.send(chartThings2)});
+	});
 }
 
-function f2d(number, max=1, min=0){
-	if(isNaN(number))
-		return "#00FF00";
-
-	var d = max != min ? Math.abs(Math.round(255 * (1-(Math.abs(number)-Math.abs(min)) / (Math.abs(max)-Math.abs(min))))) : 255;
-	var h = Math.abs(d) < 256 ? Math.abs(d).toString(16) : 'FF';
-    if(h.length < 2)
-		h = '0' + h;
-
-	if(number < 0){
-		return "#" + h + "0000";
+function chartThings2(response){
+	div = document.getElementById("test-div");
+	var data = response.getDataTable();
+	var buffer = "<table>";
+	for(var row = 0; row < 100; row++){
+		buffer += "<tr>";
+		if(data.getValue(row, 1) && data.getValue(row, 2) && data.getValue(row, 5)){
+			//~ for(var col = 0; col < 3; col++){
+				//~ buffer += "<td>" + data.getValue(row, col) + "</td>";
+			//~ }
+			var sleep = new Date(MS_PER_DAY + (data.getValue(row, 0).valueOf() + (data.getValue(row, 1) < .5 ? MS_PER_DAY*data.getValue(row, 1) : MS_PER_DAY*(data.getValue(row, 1) - 1))));
+			var wake = new Date(data.getValue(row, 0).valueOf() + Math.round(data.getValue(row, 2)*MS_PER_DAY));
+			
+			buffer += "<td>" + sleep + "</td>";
+			buffer += "<td>" + wake + "</td>";
+			
+			//~ difftest(data.getValue(row, 0), new Date(sleep), wake);
+			var g = gradient_descent(data.getValue(row, 0), new Date(sleep), wake, false);
+			
+			buffer += "<td>" + g.l + "</td>";
+			buffer += "<td>" + g.phi + "</td>";
+			buffer += "<td>" + g.s + "</td>";
+			buffer += "<td>" + g.r + "</td>";
+			buffer += "<td>" + g.i + "</td>";
+			buffer += "</tr>";
+		}
 	}
-	else if(number>0){
-		return "#" + "0000" + h;
-	}
-	else
-		return "#FFFFFF";
+	buffer += "</table>";
+	
+	div.innerHTML += buffer;
 }
 
 function showThings(){
 	div = document.getElementById("test-div");
-	var m = riseset(date, longitude, latitude);
-	div.innerHTML += "Longitude: " + longitude + "<br>";
-	div.innerHTML += "Latitude: " + latitude + "<br>";
-	div.innerHTML += "Rise: " + m.rise + "<br>";
-	div.innerHTML += "Set: " + m.set + "<br>";
-	difftest(date, m.set, m.rise);
-	//~ qtest(date, m.set, m.rise);
-	//~ gradient_descent(date, m.set, m.rise);
+	//~ var m = riseset(date, longitude, latitude);
+	//~ div.innerHTML += "Longitude: " + longitude + "<br>";
+	//~ div.innerHTML += "Latitude: " + latitude + "<br>";
+	//~ div.innerHTML += "Rise: " + m.rise + "<br>";
+	//~ div.innerHTML += "Set: " + m.set + "<br>";
+	//~ difftest(date, m.set, m.rise);
+	gradient_descent(new Date(), new Date(2016, 11, 19, 17, 23), new Date(2016, 11, 19, 7, 26), true);
+}
+
+function f2d(number, max=1, min=0, greyscale=false){
+	if(isNaN(number) || max==min)
+		return "#00FF00";
+
+	var d = Math.abs(Math.round(255 - scale(number, max, min)));
+	var h = Math.abs(d).toString(16);
+    if(h.length < 2)
+		h = '0' + h;
+
+	if(greyscale)
+		return "#" + h + h + h;
+	else if(number < 0)
+		return "#" + h + "0000";
+	else if(number>0)
+		return "#" + "0000" + h;
+	else
+		return "#FFFFFF";
+}
+
+function scale(v, max, min){
+	if(max == min)
+		return v / Math.abs(v)
+	return Math.round(255 * (Math.abs(v)-Math.abs(min)) / (Math.abs(max)-Math.abs(min)))
 }
 
 function difftest(n, s, r){
-	setN(n);
-	setS(s);
-	setR(r);
-
+	initiate(n, s, r);
 	var buffer = "";
-	var m = getMq(Q);
-
-	buffer += m.max + " " + m.min + "<br><table>";
-	for(var phi = 85; phi >= -85; phi-=5){
-		buffer += "<tr>";
-		for(var l = -180; l <= 180; l+=5){
-			var v = Q(l, phi);;
-			if(m.max == m.min)
-				buffer += "<td>" + v/Math.abs(v) + "</td>";
-			else
-				buffer += "<td bgcolor=\"" + f2d(v, m.max, m.min) + "\">" + Math.round(100 * (Math.abs(v)-Math.abs(m.min)) / (Math.abs(m.max)-Math.abs(m.min))) +  "</td>";
-				//~ buffer += "<td bgcolor=\"" + f2c(v, m.max, m.min) + "\">" + Math.round(100 * (Math.abs(v)-Math.abs(m.min)) / (Math.abs(m.max)-Math.abs(m.min))) +  "</td>";
-
-			//~ buffer += "<td bgcolor=\"" + f2d(v, m.max, m.min) + "\">" + v +  "</td>";
+	for(var arr = [Q, Q_l, Q_phi], f = 0; f < 3; f++){
+		var m = getMq(arr[f]);
+		buffer += m.max + " " + m.min + "<br><table>";
+		var max = 0;
+		for(var phi = 85; phi >= -85; phi-=5){
+			buffer += "<tr>";
+			for(var l = -180; l <= 180; l+=5){
+				var v = arr[f](l, phi);
+					buffer += "<td bgcolor=\"" + f2d(v, m.max, m.min) + "\">" + scale(v, m.max, m.min) +  "</td>";
+				//~ buffer += "<td bgcolor=\"" + f2d(v, m.max, m.min) + "\">" + v +  "</td>";
+			}
+			buffer += "</tr>";
 		}
-		buffer += "</tr>";
+		buffer += "</table>";
 	}
-	buffer += "</table>";
-
-	m = getMq(Q_l);
-
-	buffer += m.max + " " + m.min + "<br><table>";
-	var max = 0;
-	for(var phi = 85; phi >= -85; phi-=5){
-		buffer += "<tr>";
-		for(var l = -180; l <= 180; l+=5){
-			var v = Q_l(l, phi);
-			if(m.max == m.min)
-				buffer += "<td>" + v/Math.abs(v) + "</td>";
-			else
-				buffer += "<td bgcolor=\"" + f2d(v, m.max, m.min) + "\">" + Math.round(100 * (Math.abs(v)-Math.abs(m.min)) / (Math.abs(m.max)-Math.abs(m.min))) +  "</td>";
-				//~ buffer += "<td bgcolor=\"" + f2c(v, m.max, m.min) + "\">" + Math.round(100 * (Math.abs(v)-Math.abs(m.min)) / (Math.abs(m.max)-Math.abs(m.min))) +  "</td>";
-
-			//~ buffer += "<td bgcolor=\"" + f2d(v, m.max, m.min) + "\">" + v +  "</td>";
-		}
-		buffer += "</tr>";
-	}
-	buffer += "</table>";
-
-	m = getMq(Q_phi);
-
-	buffer += m.max + " " + m.min + "<br><table>";
-	var max = 0;
-	for(var phi = 85; phi >= -85; phi-=5){
-		buffer += "<tr>";
-		for(var l = -180; l <= 180; l+=5){
-			var v = Q_phi(l, phi);
-			if(m.max == m.min)
-				buffer += "<td>" + v/Math.abs(v) + "</td>";
-			else
-				buffer += "<td bgcolor=\"" + f2d(v, m.max, m.min) + "\">" + Math.round(100 * (Math.abs(v)-Math.abs(m.min)) / (Math.abs(m.max)-Math.abs(m.min))) +  "</td>";
-				//~ buffer += "<td bgcolor=\"" + f2c(v, m.max, m.min) + "\">" + Math.round(100 * (Math.abs(v)-Math.abs(m.min)) / (Math.abs(m.max)-Math.abs(m.min))) +  "</td>";
-
-			//~ buffer += "<td bgcolor=\"" + f2d(v, m.max, m.min) + "\">" + v +  "</td>";
-		}
-		buffer += "</tr>";
-	}
-	buffer += "</table>";
 
 	div.innerHTML += buffer;
-}
-
-function getMs(f){
-	var max = 0;
-	var min = -1;
-	for(var phi = 85; phi >= -85; phi-=5){
-		for(var l = -180; l <= 180; l+=5){
-			var v = f(l, phi);
-			if(Math.abs(v) > max)
-				max = Math.abs(v);
-			if(min<0 || Math.abs(v) < min)
-				min = Math.abs(v);
-		}
-	}
-	return {'max':max, 'min':min};
 }
 
 function getMq(f){
@@ -147,42 +123,29 @@ function getMq(f){
 	return {'max':max, 'min':min};
 }
 
-function qtest(n, s, r){
-	setN(n);
-	setS(s);
-	setR(r);
-	var m = getMq(Q);
-	div.innerHTML += jtog(getS());
-	var buffer = "<table>"
-	for(var phi = 90; phi >= -90; phi-=5){
-		buffer += "<tr>";
-		for(var l = -180; l <= 180; l+=5){
-			var v = Q(l, phi);
-			//~ buffer += "<td bgcolor=\"" + f2c(v-1, .6) + "\">" + Math.round((v-1)*1000) +  "</td>";
-			buffer += "<td bgcolor=\"" + f2c(v-1, m.max, m.min) + "\">" + v +  "</td>";
-		}
-		buffer += "</tr>";
-	}
-	buffer += "</table>";
-	div.innerHTML += buffer;
-}
-
-function gradient_descent(n, s, r){
-	setN(n);
-	setS(s);
-	setR(r);
+function gradient_descent(n, s, r, verbose=false){
+	initiate(n, s, r);
 	var l = 0
 	var phi = 0;
-	var buffer = "<table><tr><td width=\"15%\">Longitude</td><td width=\"15%\">Latitude</td><td width=\"25%\">Sunrise</td><td width=\"25%\">Sunset</td><td width=\"15%\">Q</td></tr>";
-	
-	while(Q(l, phi) > 1.15){
-		buffer += "<tr><td>" + l + "</td><td>" + phi  + "</td><td>" + jtog(R(l, phi))  + "</td><td>" +  jtog(S(l, phi))  + "</td><td>" +  Q(l, phi) + "</td></tr>";
-		l = (l + Q_l(l, phi)) % 180;
-		phi = (phi + Q_phi(l, phi));// % 90;
+	var buffer = "<table><tr><td width=\"5%\">i</td><td width=\"15%\">Longitude</td><td width=\"15%\">Latitude</td><td width=\"25%\">Sunrise</td><td width=\"25%\">Sunset</td><td width=\"15%\">Q</td></tr>";
+	var v = Q(l, phi);
+	var i = 0;
+
+	while(v > 1.0001){
+		if(verbose)
+			buffer += "<tr><td>" + i + "</td><td>" + l + "</td><td>" + phi  + "</td><td>" + jtog(R(l, phi))  + "</td><td>" +  jtog(S(l, phi))  + "</td><td>" +  Q(l, phi) + "</td></tr>";
+		l -= 5000*Q_l(l, phi);
+		phi -= 5000*Q_phi(l, phi);
+		v = Q(l, phi);
+		i += 1;
 	}
-	buffer += "<tr><td>" + l + "</td><td>" + phi  + "</td><td>" + jtog(R(l, phi))  + "</td><td>" +  jtog(S(l, phi))  + "</td><td>" +  Q(l, phi) + "</td></tr></table>";
+
+	if(verbose){
+		buffer += "<tr><td>" + i + "</td><td>" + l + "</td><td>" + phi + "</td><td>" + jtog(R(l, phi))  + "</td><td>" +  jtog(S(l, phi))  + "</td><td>" +  Q(l, phi) + "</td></tr></table>";
+		div.innerHTML += buffer;
+	}
 	
-	div.innerHTML += buffer;
+	return {'l':l, 'phi':phi, 's':jtog(S(l, phi)), 'r':jtog(R(l, phi)), 'i':i};
 }
 
 
