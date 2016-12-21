@@ -1,26 +1,21 @@
 <html>
 <head>
-	<title>Somnkarta Test Page</title>
+	<title>Somnkarta</title>
 
 <!--
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 -->
 	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js" charset="utf-8"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.13/jquery.mousewheel.min.js"
             charset="utf-8"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.2.0/raphael-min.js" charset="utf-8"></script>
-    
     <script src="jQuery-Mapael/js/jquery.mapael.js" charset="utf-8"></script>
     <script src="jQuery-Mapael/js/maps/france_departments.js" charset="utf-8"></script>
     <script src="jQuery-Mapael/js/maps/world_countries.js" charset="utf-8"></script>
     <script src="jQuery-Mapael/js/maps/usa_states.js" charset="utf-8"></script>
-
-
 	<script type="text/javascript" src="sun.js"></script>
-	<script type="text/javascript" src="somnkarta.js"></script>
-	<script type="text/javascript" src="frontend.js"></script>
+	<script type="text/javascript" src="karta.js"></script>
 	
 	<script>
 	$(document).ready(mapThings);
@@ -32,6 +27,7 @@
 
 <body>
 <div class="container">
+	<button onclick="updateMap()">Mowr</button>
     <div class="mapcontainer mapael">
         <div class="map"><div class="mapTooltip" style="display: none;"></div></div>
     </div>
@@ -41,3 +37,4 @@
 
 </body>
 </html>
+
