@@ -86,6 +86,15 @@ function mapThings(){
 }
 
 /**
+ * Restarts the map and interval
+ */
+function reset(){
+	clearInterval(intervalID);
+	row = -1;
+	intervalID = setInterval(updateMap, INTERVAL_DELAY);
+}
+
+/**
  * Reads through the spreadsheet for the next viable row of data, calculates
  * the point on Earth with the given wake and sleep time and plots it on the map,
  * deleting older points as it goes.
