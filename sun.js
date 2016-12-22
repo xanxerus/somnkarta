@@ -59,34 +59,40 @@ function riseset(date, l, phi){
  * @param {Date} s - Time of sunset
  * @param {Date} r - Time of sunrise
  * @param {number} error - The maximum desired error. 1.0001 by default, about ten minutes.
- * @param {String} divName - Name of div to write to. Default is none.
  * @return An object with attributes 'l' and 'phi' and also 'i' the number of steps taken.
  */
-function inverse_riseset(s, r, error = 1.0001, divName=false){
+function inverse_riseset(s, r, error = 1.0001){
 	initialize(s, r);
-	var buffer = "<table><tr><td width=\"5%\">i</td><td width=\"15%\">Longitude</td><td width=\"15%\">Latitude</td><td width=\"25%\">Sunrise</td><td width=\"25%\">Sunset</td><td width=\"15%\">Q</td></tr>";
-	var l = 0
-	var phi = 0;
-	var v = Q(l, phi); //The error at the current location
-	var i = 0;
+	var i = 0, l = 0, phi = 0, step = 5000;
 
-	while(v > error){
-		if(divName)
-			buffer += "<tr><td>" + i + "</td><td>" + l + "</td><td>" + phi  + "</td><td>" + jtog(R(l, phi))  + "</td><td>" +  jtog(S(l, phi))  + "</td><td>" +  Q(l, phi) + "</td></tr>";
-		l -= 5000*Q_l(l, phi);
-		phi -= 5000*Q_phi(l, phi);
-		v = Q(l, phi);
+	//Gradient Descent
+	while(Q(l, phi) > error){
+		var ql = Q_l(l, phi), qphi = Q_phi(l, phi);
+		
+		if(isNaN(ql) || isNaN(qphi)){
+			ql = 0;
+			qphi = phi/45;
+		}
+
+		l -= step*ql;
+		phi -= step*qphi;
 		i += 1;
+		if(i%100 == 0)
+			if(step > 10)
+				step /= 2;
+			else
+				break;
 	}
-	
-	if(Math.abs(l) > 180 || Math.abs(phi) > 90){
-		console.log("Out of bounds. Sunrise: " + r + " Sunset: " + s + " Longitude: " + l + " Latitude: " + phi + " N: " + jtog(getN()));
-	}
-	if(divName){
-	//~ alert('q');
-		buffer += "<tr><td>" + i + "</td><td>" + l + "</td><td>" + phi + "</td><td>" + jtog(R(l, phi))  + "</td><td>" +  jtog(S(l, phi))  + "</td><td>" +  Q(l, phi) + "</td></tr></table>";
-		document.getElementById(divName).innerHTML = buffer;
-	}
+
+	//Adjust for out of bounds longitudes/latitudes
+	if(l > 180)
+		l -= 360;
+	else if (l < -180)
+		l += 360;
+	if(phi > 90)
+		phi -= 180;
+	else if(phi < -90)
+		phi += 180;
 
 	return {'l':l, 'phi':phi, 'i':i};
 }
@@ -129,7 +135,7 @@ function floordate(g){
  * @param {Date} sunrise - The Date for the sunset
  */
 function initialize(sunset, sunrise){
-	setN(sunset);
+	setN(sunrise);
 	s = gtoj(sunset);
 	r = gtoj(sunrise);
 }
