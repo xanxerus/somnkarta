@@ -9,8 +9,9 @@ var MAX_DOTS = 10;
 
 //Variables
 var intervalID = -1;
+var points = [];
 var data = null;
-var row = 0;
+var row = -1;
 
 /**
  * Returns a string with only the year, month, and day of a given date object
@@ -90,31 +91,43 @@ function mapThings(){
  * deleting older points as it goes.
  */
 function updateMap(){
-	while(row < data.getNumberOfRows() && !(data.getValue(row, 1) && data.getValue(row, 2) && data.getValue(row, 5))){
-		$(".mapcontainer").trigger('update', [{ deletePlotKeys: [Number(row-MAX_DOTS).toString()] }]);
+	row++;
+	if(points.length > MAX_DOTS)
+		$(".mapcontainer").trigger('update', [{ 
+			deletePlotKeys: [points.shift().toString()], 
+			animDuration: INTERVAL_DELAY 
+		}]);
+
+	while(row < data.getNumberOfRows() && !(data.getValue(row, 1) && data.getValue(row, 2) && data.getValue(row, 5)))
 		row++;
-	}
 
 	if(row >= data.getNumberOfRows()){
-		clearInterval(intervalID);
+		if(points.length > 0)
+			$(".mapcontainer").trigger('update', [{ 
+				deletePlotKeys: [points.shift().toString()], 
+				animDuration: INTERVAL_DELAY 
+			}]);
+		else
+			clearInterval(intervalID);
 		return;
 	}
 
 	var wake = new Date(data.getValue(row, 0).valueOf() + Math.round(data.getValue(row, 2)*MS_PER_DAY));
-	var sleep = new Date(MS_PER_DAY + (data.getValue(row, 0).valueOf() + (data.getValue(row, 1) < .5 ? MS_PER_DAY*data.getValue(row, 1) : MS_PER_DAY*(data.getValue(row, 1) - 1))));
-	var g = inverse_riseset(sleep, wake);
+	var sleep = MS_PER_DAY + data.getValue(row, 0).valueOf();
+	if(data.getValue(row, 1) < .5)
+		sleep += MS_PER_DAY*data.getValue(row, 1);
+	else
+		sleep += MS_PER_DAY*(data.getValue(row, 1) - 1);
+	sleep = new Date(sleep);
 
+	var g = inverse_riseset(sleep, wake);
 	if(g == null || isNaN(S(g.l, g.phi)) || isNaN(R(g.l, g.phi))){
-		$(".mapcontainer").trigger('update', [{ deletePlotKeys: [Number(row-MAX_DOTS).toString()] }]);
-		row++;
 		updateMap();
 		return;
 	}
 
 	var name = Number(row).toString();
 	document.getElementById("message-div").innerHTML = "<table><tr><td>Date:</td><td>"+dateOnly(data.getValue(row, 0))+"</td></tr>"+"<tr><td>Sunset:</td><td>" + timeOnly(sleep) + "</td></tr><tr><td>Sunrise:</td><td>" + timeOnly(wake) + "</td></tr></table>";
-	//~ document.getElementById("message-div").innerHTML = row + ": " + g.l + " " + g.phi + "<br>" + dateOnly(data.getValue(row, 0)) + "<br>" + sleep + " " + wake;
-	//~ document.getElementById("message-div").innerHTML += "<br>" + jtog(S(g.l, g.phi)) + " " + jtog(R(g.l, g.phi)) + "<br>" + g.i;
 
 	var newPlots = {};
 	newPlots[name] = {
@@ -123,12 +136,11 @@ function updateMap(){
 			tooltip: {content: "Sunset: " + sleep + "\nSunrise: " + wake + "\nLongitude: " + g.l + "\nLatitude" + g.phi},
 			size : 5
 	};
+	
+	points.push(row);
 
 	$(".mapcontainer").trigger('update', [{
 		newPlots: newPlots, 
-		deletePlotKeys: [Number(row-MAX_DOTS).toString()],
 		animDuration: INTERVAL_DELAY
 	}]);
-
-	row++;
 }
