@@ -4,3 +4,6 @@
 [submodule "suncalc"]
 	path = suncalc
 	url = https://github.com/mourner/suncalc.git
+[submodule "jquery-ui"]
+	path = jquery-ui
+	url = https://github.com/jquery/jquery-ui.git
