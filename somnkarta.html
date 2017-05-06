@@ -2,6 +2,12 @@
 <head>
 	<title>Somnkarta</title>
 
+	<link rel="stylesheet" href="jquery-ui/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="jquery-ui/demos/demos.css">
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+
+
+
 <!--
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 -->
@@ -14,11 +20,22 @@
     <script src="jQuery-Mapael/js/maps/france_departments.js" charset="utf-8"></script>
     <script src="jQuery-Mapael/js/maps/world_countries.js" charset="utf-8"></script>
     <script src="jQuery-Mapael/js/maps/usa_states.js" charset="utf-8"></script>
+
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script type="text/javascript" src="sun.js"></script>
 	<script type="text/javascript" src="karta.js"></script>
 	
 	<script>
-	$(document).ready(mapThings);
+	google.charts.load('current', {'packages':['corechart']});
+	google.charts.setOnLoadCallback(function(){
+		$(document).ready(function() { 
+			new google.visualization.Query(URL + QUERY)
+			.send(function(response) {  
+				gogogo(response.getDataTable());
+			} )
+		});
+	});
+
 	//~ $(document).ready(chartThings);
 	//~ $(document).ready(showThings);
 	</script>
@@ -26,15 +43,27 @@
 </head>
 
 <body>
-	<div id="message-div" class="message-div"></div>
-
-	<div class="container">
-		<div class="mapcontainer mapael">
-			<div class="map"><div class="mapTooltip" style="display: none;"></div></div>
-		</div>
+<div class="container">
+	<div class="mapcontainer mapael">
+		<div class="map"><div class="mapTooltip" style="display: none;"></div></div>
 	</div>
+</div>
+<br>
+<div id="slider-range"></div>
+<br>
+	<table width="100%">
+		<col width="15%">
+		<col width="85%">
+		<tr><td>Date range:</td><td id="amount"></td>
+		<tr><td>Date:&nbsp </td><td id="date-cell">None</td></tr>
+		<tr><td>Sunset:&nbsp </td><td id="sunset-cell">None</td></tr>
+		<tr><td>Sunrise:&nbsp </td><td id="sunrise-cell">None</td></tr>
+	</table>
 
-	<button onclick="reset()">Reset</button>
+<button onclick="rangeMap()"> Go! </button>
+<button onclick="resetMap()"> Reset </button>
+<br>
+
 </body>
 </html>
 
