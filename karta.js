@@ -1,5 +1,8 @@
 //Constants
 var URL = 'https://docs.google.com/spreadsheets/d/1-5iMHMlFECK3dpUeOvYkbnPGG9cF_Q6JvmKJT3hG8Vs/edit?usp=sharing';
+var QUERY = "/gvis/gid=0&headers=1&tq=" + encodeURIComponent('select A,B,C,E,D where (F = TRUE and E is not null)');
+var DATA = null;
+
 var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
 	'July', 'August', 'September', 'October', 'November', 'December'];
 var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 
@@ -10,8 +13,9 @@ var MAX_DOTS = 10;
 //Variables
 var intervalID = -1;
 var points = [];
-var data = null;
-var row = -1;
+//~ var data = null;
+var ROW = -1;
+var END = -1;
 
 /**
  * Returns a string with only the year, month, and day of a given date object
@@ -43,7 +47,7 @@ function timeOnly(date){
 /**
  * Brings up a map, queries the google sheet for data, then starts plotitng.
  */
-function mapThings(){
+function initializeMap(){
 	$(".mapcontainer").mapael({
 		map: {
 			name: "world_countries",
@@ -71,27 +75,28 @@ function mapThings(){
 			}
 		},
 	});
-	
-	//Load library and data file
-	google.charts.load('current', {'packages':['corechart']});
-	google.charts.setOnLoadCallback(function(){
-		$(document).ready(function() { 
-			new google.visualization.Query(URL + encodeURIComponent(''))
-			.send(function(response) {  
-				data = response.getDataTable(); 
-				intervalID = setInterval(updateMap, INTERVAL_DELAY);
-			} )
-		});
-	});
+}
+
+function rangeMap(){
+	ROW = $("#slider-range").slider("values", 0);
+	END = $("#slider-range").slider("values", 1);
+	intervalID = setInterval(updateMap, INTERVAL_DELAY);
 }
 
 /**
  * Restarts the map and interval
  */
-function reset(){
+function resetMap(){
 	clearInterval(intervalID);
-	row = -1;
-	intervalID = setInterval(updateMap, INTERVAL_DELAY);
+	ROW = -1;
+	END = -1;
+	$(".mapcontainer").trigger('update', [{deletePlotKeys:"all"}]);
+	document.getElementById("date-cell").innerHTML = "None";
+	document.getElementById("sunset-cell").innerHTML = "None";
+	document.getElementById("sunrise-cell").innerHTML = "None";
+	
+	
+
 }
 
 /**
@@ -100,43 +105,43 @@ function reset(){
  * deleting older points as it goes.
  */
 function updateMap(){
-	row++;
-	if(points.length > MAX_DOTS)
+	ROW++;
+	if(points.length > MAX_DOTS || ROW > END && points.length > 0)
 		$(".mapcontainer").trigger('update', [{ 
 			deletePlotKeys: [points.shift().toString()], 
 			animDuration: INTERVAL_DELAY 
 		}]);
 
-	while(row < data.getNumberOfRows() && !(data.getValue(row, 1) && data.getValue(row, 2) && data.getValue(row, 5)))
-		row++;
-
-	if(row >= data.getNumberOfRows()){
-		if(points.length > 0)
-			$(".mapcontainer").trigger('update', [{ 
-				deletePlotKeys: [points.shift().toString()], 
-				animDuration: INTERVAL_DELAY 
-			}]);
-		else
+	if(ROW > END){
+		if(points.length == 0)
 			clearInterval(intervalID);
 		return;
 	}
 
-	var wake = new Date(data.getValue(row, 0).valueOf() + Math.round(data.getValue(row, 2)*MS_PER_DAY));
-	var sleep = MS_PER_DAY + data.getValue(row, 0).valueOf();
-	if(data.getValue(row, 1) < .5)
-		sleep += MS_PER_DAY*data.getValue(row, 1);
+	var wake = new Date(DATA.getValue(ROW, 0).valueOf() + Math.round(DATA.getValue(ROW, 2)*MS_PER_DAY));
+	var sleep = MS_PER_DAY + DATA.getValue(ROW, 0).valueOf();
+	if(DATA.getValue(ROW, 1) < .5)
+		sleep += MS_PER_DAY*DATA.getValue(ROW, 1);
 	else
-		sleep += MS_PER_DAY*(data.getValue(row, 1) - 1);
+		sleep += MS_PER_DAY*(DATA.getValue(ROW, 1) - 1);
 	sleep = new Date(sleep);
 
 	var g = inverse_riseset(sleep, wake);
 	if(g == null || isNaN(S(g.l, g.phi)) || isNaN(R(g.l, g.phi))){
-		updateMap();
+		console.log("Inverse exception\nDate: " + DATA.getValue(ROW, 0) +
+					+ "\nWake: " + wake
+					+ "\nSleep: " + sleep
+					+ "\nG: " + g + "\n\n");
 		return;
 	}
 
-	var name = Number(row).toString();
-	document.getElementById("message-div").innerHTML = "<table><tr><td>Date:</td><td>"+dateOnly(data.getValue(row, 0))+"</td></tr>"+"<tr><td>Sunset:</td><td>" + timeOnly(sleep) + "</td></tr><tr><td>Sunrise:</td><td>" + timeOnly(wake) + "</td></tr></table>";
+	var name = Number(ROW).toString();
+	document.getElementById("date-cell").innerHTML = dateOnly(DATA.getValue(ROW, 0));
+	document.getElementById("sunset-cell").innerHTML = timeOnly(sleep);
+	document.getElementById("sunrise-cell").innerHTML = timeOnly(wake);
+	
+	
+	//~ "</td></tr><tr><td>Sunrise:</td><td>" + timeOnly(wake) + "</td></tr></table>";
 
 	var newPlots = {};
 	newPlots[name] = {
@@ -146,10 +151,27 @@ function updateMap(){
 			size : 5
 	};
 	
-	points.push(row);
+	points.push(ROW);
 
 	$(".mapcontainer").trigger('update', [{
 		newPlots: newPlots, 
 		animDuration: INTERVAL_DELAY
 	}]);
+}
+
+function gogogo(data){
+	DATA = data;
+	initializeMap();
+	
+	$( "#slider-range" ).slider({
+		range: true,
+		min: 0,
+		max: data.getNumberOfRows()-1,
+		values: [ 170, 591 ],
+		slide: function( event, ui ) {
+			$( "#amount" ).html( dateOnly(DATA.getValue(ui.values[0],0)) + " to " + dateOnly(DATA.getValue(ui.values[1],0)));
+		}
+	});
+	
+	$( "#amount" ).html(dateOnly(DATA.getValue($("#slider-range").slider("values", 0),0)) + " to " + dateOnly(DATA.getValue($( "#slider-range" ).slider( "values", 1 ),0)));
 }

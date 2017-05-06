@@ -9,15 +9,23 @@ beginning of summer break 2014.
 
 somnkarta.html demonstrates. 
 
-This project uses two JavaScript API's using the [Google Visualization API](https://developers.google.com/chart/interactive/docs/reference)
-and [JQuery Mapael API](https://github.com/neveldo/jQuery-Mapael) for querying data and displaying a map visual.
+This project uses three JavaScript APIs.
+* The [Google Visualization API](https://developers.google.com/chart/interactive/docs/reference)
+* [jQuery Mapael API](https://github.com/neveldo/jQuery-Mapael) 
+* [jQuery-UI](https://github.com/jquery/jquery-ui)
 
 ## NOTICE - Licensing stuff
-This project makes use of the [jQuery Mapael project](https://github.com/neveldo/jQuery-Mapael) 
-which is under the BSD 2 License. The jQuery-Mapael code and its license is in a submodule.
-
-It also uses the Google Charts API, which binds me and end users to their 
+This project makes use of the Google Charts API, which binds me and end users to their 
 EULA: https://developers.google.com/terms/
+
+It also uses the [jQuery Mapael project](https://github.com/neveldo/jQuery-Mapael) 
+which is under the BSD 2 License. The jQuery-Mapael code and its license is in a
+ submodule.
+
+[jQuery-UI](https://github.com/jquery/jquery-ui) is the other submodule and it 
+uses an MIT license as best as I can tell.
+
+It also uses  
 
 Unless otherwise specified, anything outside those submodules was written by me.
 
