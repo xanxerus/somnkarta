@@ -13,7 +13,6 @@ var MAX_DOTS = 10;
 //Variables
 var intervalID = -1;
 var points = [];
-//~ var data = null;
 var ROW = -1;
 var END = -1;
 
@@ -45,9 +44,9 @@ function timeOnly(date){
 }
 
 /**
- * Brings up a map, queries the google sheet for data, then starts plotitng.
+ * Initializes an empty world map and a range slider
  */
-function initializeMap(){
+function initializeUI(){
 	$(".mapcontainer").mapael({
 		map: {
 			name: "world_countries",
@@ -75,8 +74,23 @@ function initializeMap(){
 			}
 		},
 	});
+
+	$( "#slider-range" ).slider({
+		range: true,
+		min: 0,
+		max: DATA.getNumberOfRows()-1,
+		values: [ 170, 591 ],
+		slide: function( event, ui ) {
+			$( "#amount" ).html( dateOnly(DATA.getValue(ui.values[0],0)) + " to " + dateOnly(DATA.getValue(ui.values[1],0)));
+		}
+	});
+	
+	$( "#amount" ).html(dateOnly(DATA.getValue($("#slider-range").slider("values", 0),0)) + " to " + dateOnly(DATA.getValue($( "#slider-range" ).slider( "values", 1 ),0)));
 }
 
+/**
+ * Starts the iteration through the map using the dates given by the UI
+ */
 function rangeMap(){
 	ROW = $("#slider-range").slider("values", 0);
 	END = $("#slider-range").slider("values", 1);
@@ -84,7 +98,7 @@ function rangeMap(){
 }
 
 /**
- * Restarts the map and interval
+ * Resets the map and stops the iteration of points
  */
 function resetMap(){
 	clearInterval(intervalID);
@@ -94,60 +108,67 @@ function resetMap(){
 	document.getElementById("date-cell").innerHTML = "None";
 	document.getElementById("sunset-cell").innerHTML = "None";
 	document.getElementById("sunrise-cell").innerHTML = "None";
-	
-	
-
+	document.getElementById("latitude-cell").innerHTML = "None";
+	document.getElementById("longitude-cell").innerHTML = "None";
 }
 
 /**
- * Reads through the spreadsheet for the next viable row of data, calculates
- * the point on Earth with the given wake and sleep time and plots it on the map,
- * deleting older points as it goes.
+ * Iterates through a range in the spreadsheet specified by ROW and END.
+ * For each data point, plots the point on the Earth with a corresponding
+ * sleep and wake time.
  */
 function updateMap(){
 	ROW++;
+	
+	//remove a point if there are too many or we are winding down.
 	if(points.length > MAX_DOTS || ROW > END && points.length > 0)
 		$(".mapcontainer").trigger('update', [{ 
 			deletePlotKeys: [points.shift().toString()], 
 			animDuration: INTERVAL_DELAY 
 		}]);
 
+	//stop if we are done and all points are gone
 	if(ROW > END){
 		if(points.length == 0)
 			clearInterval(intervalID);
 		return;
 	}
 
+	//read the wake and sleep time from the spreadsheet
 	var wake = new Date(DATA.getValue(ROW, 0).valueOf() + Math.round(DATA.getValue(ROW, 2)*MS_PER_DAY));
-	var sleep = MS_PER_DAY + DATA.getValue(ROW, 0).valueOf();
+	var sleep = DATA.getValue(ROW, 0).valueOf();
 	if(DATA.getValue(ROW, 1) < .5)
 		sleep += MS_PER_DAY*DATA.getValue(ROW, 1);
 	else
 		sleep += MS_PER_DAY*(DATA.getValue(ROW, 1) - 1);
-	sleep = new Date(sleep);
+	sleep = new Date(sleep+MS_PER_DAY);
 
+	//calculate the point on Earth with the corresponding times
 	var g = inverse_riseset(sleep, wake);
-	if(g == null || isNaN(S(g.l, g.phi)) || isNaN(R(g.l, g.phi))){
-		console.log("Inverse exception\nDate: " + DATA.getValue(ROW, 0) +
-					+ "\nWake: " + wake
-					+ "\nSleep: " + sleep
-					+ "\nG: " + g + "\n\n");
+
+	//update the UI
+	document.getElementById("date-cell").innerHTML = dateOnly(DATA.getValue(ROW, 0));
+	document.getElementById("sunset-cell").innerHTML = sleep;
+	document.getElementById("sunrise-cell").innerHTML = wake;
+	
+	//if no point was found, plot nothing and move on
+	if(g == null || Math.abs(g.lon) > 180 || Math.abs(g.lat) > 90 ){
+		document.getElementById("latitude-cell").innerHTML = 'Error';
+		document.getElementById("longitude-cell").innerHTML = 'Error';
+		console.log("Inverse Exception", dateOnly(wake));
 		return;
 	}
 
-	var name = Number(ROW).toString();
-	document.getElementById("date-cell").innerHTML = dateOnly(DATA.getValue(ROW, 0));
-	document.getElementById("sunset-cell").innerHTML = timeOnly(sleep);
-	document.getElementById("sunrise-cell").innerHTML = timeOnly(wake);
-	
-	
-	//~ "</td></tr><tr><td>Sunrise:</td><td>" + timeOnly(wake) + "</td></tr></table>";
+	document.getElementById("latitude-cell").innerHTML = g.lat;
+	document.getElementById("longitude-cell").innerHTML = g.lon;
 
+	//add the point to th em
+	var name = Number(ROW).toString();
 	var newPlots = {};
 	newPlots[name] = {
-			longitude: g.l,
-			latitude: g.phi,
-			tooltip: {content: "Sunset: " + sleep + "\nSunrise: " + wake + "\nLongitude: " + g.l + "\nLatitude" + g.phi},
+			longitude: g.lon,
+			latitude: g.lat,
+			tooltip: {content: "Sunset: " + sleep + "\nSunrise: " + wake + "\nLongitude: " + g.lon + "\nLatitude: " + g.lat},
 			size : 5
 	};
 	
@@ -157,21 +178,4 @@ function updateMap(){
 		newPlots: newPlots, 
 		animDuration: INTERVAL_DELAY
 	}]);
-}
-
-function gogogo(data){
-	DATA = data;
-	initializeMap();
-	
-	$( "#slider-range" ).slider({
-		range: true,
-		min: 0,
-		max: data.getNumberOfRows()-1,
-		values: [ 170, 591 ],
-		slide: function( event, ui ) {
-			$( "#amount" ).html( dateOnly(DATA.getValue(ui.values[0],0)) + " to " + dateOnly(DATA.getValue(ui.values[1],0)));
-		}
-	});
-	
-	$( "#amount" ).html(dateOnly(DATA.getValue($("#slider-range").slider("values", 0),0)) + " to " + dateOnly(DATA.getValue($( "#slider-range" ).slider( "values", 1 ),0)));
 }

@@ -6,11 +6,6 @@
 	<link rel="stylesheet" href="jquery-ui/demos/demos.css">
 	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 
-
-
-<!--
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
--->
 	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js" charset="utf-8"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.13/jquery.mousewheel.min.js"
@@ -28,16 +23,14 @@
 	<script>
 	google.charts.load('current', {'packages':['corechart']});
 	google.charts.setOnLoadCallback(function(){
-		$(document).ready(function() { 
+		$(document).ready(function() {
 			new google.visualization.Query(URL + QUERY)
 			.send(function(response) {  
-				gogogo(response.getDataTable());
+				DATA = response.getDataTable();
+				initializeUI();
 			} )
 		});
 	});
-
-	//~ $(document).ready(chartThings);
-	//~ $(document).ready(showThings);
 	</script>
 	
 </head>
@@ -58,6 +51,8 @@
 		<tr><td>Date:&nbsp </td><td id="date-cell">None</td></tr>
 		<tr><td>Sunset:&nbsp </td><td id="sunset-cell">None</td></tr>
 		<tr><td>Sunrise:&nbsp </td><td id="sunrise-cell">None</td></tr>
+		<tr><td>Latitude:&nbsp </td><td id="latitude-cell">None</td></tr>
+		<tr><td>Longitude:&nbsp </td><td id="longitude-cell">None</td></tr>
 	</table>
 
 <button onclick="rangeMap()"> Go! </button>
