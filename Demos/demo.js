@@ -91,6 +91,15 @@ function resetMap(){
  * The duration of sunlight
  */
 function initializeData(){
+	splots = {};
+	rplots = {};
+	dplots = {};
+	qlonplots = {};
+	qlatplots = {};
+	errplots = {};
+	descentplots = {};
+	
+	inverse_riseset(new Date($("#usrSet")[0].value), new Date($("#usrRise")[0].value), 1.0001, true);
 	var s = gtoj(new Date($("#usrSet")[0].value));
 	var r = gtoj(new Date($("#usrRise")[0].value));
 	
@@ -127,7 +136,6 @@ function initializeData(){
 
 	var i = 0, lon = 0, lat = 0, step = 30;
 
-	//gradient descent
 	for(var lat = -90; lat <= 90; lat += 10){
 		for(var lon = 180; lon > -180; lon -= 10){
 			//error function
@@ -227,73 +235,12 @@ function initializeData(){
 	}
 }
 
-function demoqlon(){
+function demo(plots){
 	resetMap();
-	if(jQuery.isEmptyObject(qlonplots))
+	if(jQuery.isEmptyObject(plots))
 		initializeData();
-	console.log(JSON.stringify(qlonplots));
+	console.log(JSON.stringify(plots));
 	$(".mapcontainer").trigger('update', [{
-		newPlots: qlonplots, 
-	}]);
-}
-
-function demoqlat(){
-	resetMap();
-	if(jQuery.isEmptyObject(qlatplots))
-		initializeData();
-	console.log(JSON.stringify(qlatplots));
-	$(".mapcontainer").trigger('update', [{
-		newPlots: qlatplots, 
-	}]);
-}
-
-function demoerr(){
-	resetMap();
-	if(jQuery.isEmptyObject(errplots))
-		initializeData();
-	console.log(JSON.stringify(errplots));
-	$(".mapcontainer").trigger('update', [{
-		newPlots: errplots, 
-	}]);
-}
-
-function demoS(){
-	resetMap();
-	if(jQuery.isEmptyObject(splots))
-		initializeData();
-	console.log(JSON.stringify(splots));
-	$(".mapcontainer").trigger('update', [{
-		newPlots: splots, 
-	}]);
-}
-
-function demoR(){
-	resetMap();
-	if(jQuery.isEmptyObject(rplots))
-		initializeData();
-	console.log(JSON.stringify(rplots));
-	$(".mapcontainer").trigger('update', [{
-		newPlots: rplots, 
-	}]);
-}
-
-function demoD(){
-	resetMap();
-	if(jQuery.isEmptyObject(dplots))
-		initializeData();
-	console.log(JSON.stringify(dplots));
-	$(".mapcontainer").trigger('update', [{
-		newPlots: dplots, 
-	}]);
-}
-
-function demodescent(){
-	resetMap();
-	var s = gtoj(new Date($("#usrSet")[0].value));
-	var r = gtoj(new Date($("#usrRise")[0].value));
-	inverse_riseset(s, r, 1.0001, true);
-	console.log(JSON.stringify(descentplots));
-	$(".mapcontainer").trigger('update', [{
-		newPlots: descentplots, 
+		newPlots: plots, 
 	}]);
 }
