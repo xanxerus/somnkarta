@@ -45,12 +45,12 @@ function timeOnly(date){
  */
 function processData(data){
 	for(var row = 0; row < data.getNumberOfRows(); row++){
-		var wake = new Date(DATA.getValue(row, 0).valueOf() + Math.round(DATA.getValue(row, 2)*MS_PER_DAY));
-		var sleep = DATA.getValue(row, 0).valueOf();
-		if(DATA.getValue(row, 1) < .5)
-			sleep += MS_PER_DAY*DATA.getValue(row, 1);
+		var wake = new Date(data.getValue(row, 0).valueOf() + Math.round(data.getValue(row, 2)*MS_PER_DAY));
+		var sleep = data.getValue(row, 0).valueOf();
+		if(data.getValue(row, 1) < .5)
+			sleep += MS_PER_DAY*data.getValue(row, 1);
 		else
-			sleep += MS_PER_DAY*(DATA.getValue(row, 1) - 1);
+			sleep += MS_PER_DAY*(data.getValue(row, 1) - 1);
 		
 		var g = inverse_riseset(new Date(sleep + MS_PER_DAY), wake);
 		
@@ -101,7 +101,7 @@ function initializeUI(){
 	$( "#date-range" ).slider({
 		range: true,
 		min: 0,
-		max: DATA.getNumberOfRows()-1,
+		max: dataPoints.length-1,
 		values: [ 170, 591 ],
 		slide: function( event, ui ) {
 			$( "#date-range-msg" ).html( dateOnly(dataPoints[ui.values[0]].rise) + " to " + dateOnly(dataPoints[ui.values[1]].rise) );
