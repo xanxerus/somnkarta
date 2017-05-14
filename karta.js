@@ -1,8 +1,6 @@
 //Constants
 var URL = 'https://docs.google.com/spreadsheets/d/1-5iMHMlFECK3dpUeOvYkbnPGG9cF_Q6JvmKJT3hG8Vs/edit?usp=sharing';
 var QUERY = "/gvis/gid=0&headers=1&tq=" + encodeURIComponent('select A,B,C,E,D where (F = TRUE and E is not null)');
-var DATA = null;
-
 var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
 	'July', 'August', 'September', 'October', 'November', 'December'];
 var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 
@@ -11,8 +9,7 @@ var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
 //Variables
 var intervalID = -1;
 var ROW = -1;
-var END = -1;
-var points = [];
+var dataPoints = [];
 
 /**
  * Returns a string with only the year, month, and day of a given date object
@@ -42,9 +39,35 @@ function timeOnly(date){
 }
 
 /**
+ * Processes a Google Visualization data table, calculates the inverse
+ * sunrise for each date, and stores in the dataPoints array.
+ * Must run before using any function below this one.
+ */
+function processData(data){
+	for(var row = 0; row < data.getNumberOfRows(); row++){
+		var wake = new Date(DATA.getValue(row, 0).valueOf() + Math.round(DATA.getValue(row, 2)*MS_PER_DAY));
+		var sleep = DATA.getValue(row, 0).valueOf();
+		if(DATA.getValue(row, 1) < .5)
+			sleep += MS_PER_DAY*DATA.getValue(row, 1);
+		else
+			sleep += MS_PER_DAY*(DATA.getValue(row, 1) - 1);
+		
+		var g = inverse_riseset(new Date(sleep + MS_PER_DAY), wake);
+		
+		if(g == null || Math.abs(g.lon) > 180 || Math.abs(g.lat) > 90){
+			//~ console.log("Inverse Exception", dateOnly(wake));
+			continue;
+		}
+		
+		dataPoints.push({'rise':wake, 'set':new Date(sleep), 'lon':g.lon, 'lat':g.lat});
+	}
+}
+
+/**
  * Initializes an empty world map and a range slider
  */
 function initializeUI(){
+	//initializes map
 	document.getElementById("message").innerHTML = "Select a date range and press play";
 	$(".mapcontainer").mapael({
 		map: {
@@ -74,16 +97,21 @@ function initializeUI(){
 		},
 	});
 
+	//initialize date range slider
 	$( "#date-range" ).slider({
 		range: true,
 		min: 0,
 		max: DATA.getNumberOfRows()-1,
 		values: [ 170, 591 ],
 		slide: function( event, ui ) {
-			$( "#date-range-msg" ).html( dateOnly(DATA.getValue(ui.values[0],0)) + " to " + dateOnly(DATA.getValue(ui.values[1],0)));
+			$( "#date-range-msg" ).html( dateOnly(dataPoints[ui.values[0]].rise) + " to " + dateOnly(dataPoints[ui.values[1]].rise) );
+			if(intervalID >= 0){
+				END = ui.values[1];
+			}
 		}
 	});
 
+	//initialize speed range slider
 	$( "#speed-range" ).slider({
 		range: 'min',
 		min: 0,
@@ -91,9 +119,14 @@ function initializeUI(){
 		value: 100,
 		slide: function( event, ui ) {
 			$( "#speed-range-msg" ).html( ui.value + " ms" );
+			if(intervalID >= 0){
+				clearInterval(intervalID);
+				intervalID = setInterval(stepForward, ui.value);
+			}
 		}
 	});
 
+	//initialize streak range slider
 	$( "#streak-range" ).slider({
 		range: 'min',
 		min: 0,
@@ -101,22 +134,25 @@ function initializeUI(){
 		value: 10,
 		slide: function( event, ui ) {
 			$( "#streak-range-msg" ).html( ui.value + " dots" );
+			if(intervalID >= 0)
+				$(".mapcontainer").trigger('update', [{deletePlotKeys:"all"}]);
 		}
 	});
 
-	$( "#date-range-msg" ).html(dateOnly(DATA.getValue($("#date-range").slider("values", 0),0)) + " to " + dateOnly(DATA.getValue($( "#date-range" ).slider( "values", 1 ),0)));
+	$( "#date-range-msg" ).html(dateOnly(dataPoints[$("#date-range").slider("values", 0)].rise) + " to " + dateOnly(dataPoints[$("#date-range").slider("values", 1)].rise));
 	$( "#speed-range-msg" ).html($("#speed-range").slider("value") + " ms");
 	$( "#streak-range-msg" ).html($("#streak-range").slider("value") + " dots");
-
 }
 
+/**
+ * If playing, pauses. If paused, resumes.
+ */
 function buttonPlay(){
 	if(intervalID < 0){ //play button
 		document.getElementById('playbutton').className = 'pause';
 		if(ROW < 0)
 			ROW = $("#date-range").slider("values", 0);
-		END = $("#date-range").slider("values", 1);
-		intervalID = setInterval(updateMap, $("#speed-range").slider("value"));
+		intervalID = setInterval(stepForward, $("#speed-range").slider("value"));
 	}
 	else{ //pause button
 		document.getElementById('playbutton').className = 'play';
@@ -125,98 +161,125 @@ function buttonPlay(){
 	}
 }
 
+/**
+ * Resets the map and pauses.
+ */
 function buttonAgain(){
 	$('#message')[0].innerHTML = 'Again!';
 	$(".mapcontainer").trigger('update', [{deletePlotKeys:"all"}]);
 	ROW = -1;
-	END = -1;
 	if(intervalID >= 0)
 		buttonPlay();
 }
 
+/**
+ * Steps back one frame and pauses.
+ */
 function buttonBack(){
 	$('#message')[0].innerHTML = 'Back! Back I say!';
 	if(intervalID >= 0)
 		buttonPlay();
+	if(ROW >= 0)
+		stepBack();
 }
 
+/**
+ * Steps forward one frame and pauses.
+ */
 function buttonForward(){
 	$('#message')[0].innerHTML = 'Furthermore!';
-	if(intervalID >= 0)
+
+	if(intervalID < 0){ //play button
+		if(ROW < 0)
+			ROW = $("#date-range").slider("values", 0);
+	}
+	else{ //pause button
 		buttonPlay();
-	updateMap();
+	}
+
+	stepForward();
 }
 
+/**
+ * Toggles menu visibility.
+ */
 function buttonMenu(){
 	$('#menu').toggle( 'blind', {}, 500);
 }
 
 /**
- * Iterates through a range in the spreadsheet specified by ROW and END.
- * For each data point, plots the point on the Earth with a corresponding
- * sleep and wake time.
+ * Steps forward one frame. Deletes dots beyond the streak limit.
+ * Pauses if no dots are left.
  */
-function updateMap(){
-	ROW++;
+function stepForward(){
+	if(ROW > $( "#date-range" ).slider( "values", 1 ) + $("#streak-range").slider("value")){ //no points to remove
+		buttonAgain();
+		return;
+	}
 	
-	//remove a point if there are too many or we are winding down.
-	if(points.length > $("#streak-range").slider("value") || ROW > END && points.length > 0)
+	if(ROW >= $("#streak-range").slider("value")){ //remove points
 		$(".mapcontainer").trigger('update', [{ 
-			deletePlotKeys: [points.shift().toString()], 
-			animDuration: $("#speed-range").slider("value") 
+			deletePlotKeys: [ROW - $("#streak-range").slider("value")], 
+			animDuration: $("#speed-range").slider("value")
 		}]);
-
-	//stop if we are done and all points are gone
-	if(ROW > END){
-		if(points.length == 0)
-			buttonAgain();
-		return;
 	}
-
-	//read the wake and sleep time from the spreadsheet
-	var wake = new Date(DATA.getValue(ROW, 0).valueOf() + Math.round(DATA.getValue(ROW, 2)*MS_PER_DAY));
-	var sleep = DATA.getValue(ROW, 0).valueOf();
-	if(DATA.getValue(ROW, 1) < .5)
-		sleep += MS_PER_DAY*DATA.getValue(ROW, 1);
-	else
-		sleep += MS_PER_DAY*(DATA.getValue(ROW, 1) - 1);
-	sleep = new Date(sleep+MS_PER_DAY);
-
-	//calculate the point on Earth with the corresponding times
-	var g = inverse_riseset(sleep, wake);
-
-	document.getElementById("message").innerHTML = dateOnly(DATA.getValue(ROW, 0));
-	/**
-	//update the UI
-	document.getElementById("sunset-cell").innerHTML = sleep;
-	document.getElementById("sunrise-cell").innerHTML = wake;
 	
-	//if no point was found, plot nothing and move on
-	if(g == null || Math.abs(g.lon) > 180 || Math.abs(g.lat) > 90 ){
-		document.getElementById("latitude-cell").innerHTML = 'Error';
-		document.getElementById("longitude-cell").innerHTML = 'Error';
-		console.log("Inverse Exception", dateOnly(wake));
+	if(ROW > $( "#date-range" ).slider( "values", 1 )){ //do not plot a point
+		ROW++;
 		return;
 	}
-
-	document.getElementById("latitude-cell").innerHTML = g.lat;
-	document.getElementById("longitude-cell").innerHTML = g.lon;
-	*/
-
-	//add the point to th em
-	var name = Number(ROW).toString();
-	var newPlots = {};
-	newPlots[name] = {
-			longitude: g.lon,
-			latitude: g.lat,
-			tooltip: {content: "Sunset: " + sleep + "\nSunrise: " + wake + "\nLongitude: " + g.lon + "\nLatitude: " + g.lat},
-			size : 5
+	
+	document.getElementById("message").innerHTML = dateOnly(dataPoints[ROW].rise);
+	
+	var newPlots = {}
+	newPlots[ROW] = {
+		longitude: dataPoints[ROW].lon,
+		latitude: dataPoints[ROW].lat,
+		tooltip: {content: "Sunset: " + dataPoints[ROW].set + "\nSunrise: " + dataPoints[ROW].rise + "\nLongitude: " + dataPoints[ROW].lon + "\nLatitude: " + dataPoints[ROW].lat},
+		size : 5
 	};
 	
-	points.push(ROW);
-
 	$(".mapcontainer").trigger('update', [{
-		newPlots: newPlots, 
+		newPlots: newPlots,
+		animDuration: $("#speed-range").slider("value")
+	}]);
+	
+	ROW++;
+}
+
+/**
+ * Steps back one frame. Deletes dots beyond the streak limit.
+ */
+function stepBack(){
+	ROW--;
+	
+	if(ROW < 0){ //no points to remove
+		return;
+	}
+	
+	//remove points
+	$(".mapcontainer").trigger('update', [{ 
+		deletePlotKeys: [ROW], 
+		animDuration: $("#speed-range").slider("value")
+	}]);
+	
+	var row = ROW - $("#streak-range").slider("value");
+	if(row < 0){ //do not plot a point
+		return;
+	}
+	
+	document.getElementById("message").innerHTML = "Re-added " + dateOnly(dataPoints[row].rise);
+
+	var newPlots = {}
+	newPlots[row] = {
+		longitude: dataPoints[row].lon,
+		latitude: dataPoints[row].lat,
+		tooltip: {content: "Sunset: " + dataPoints[row].set + " Sunrise: " + dataPoints[row].rise + " Longitude: " + dataPoints[row].lon + " Latitude: " + dataPoints[row].lat},
+		size : 5
+	};
+	
+	$(".mapcontainer").trigger('update', [{
+		newPlots: newPlots,
 		animDuration: $("#speed-range").slider("value")
 	}]);
 }

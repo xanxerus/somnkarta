@@ -28,7 +28,7 @@
 			$(document).ready(function() {
 				new google.visualization.Query(URL + QUERY)
 				.send(function(response) {
-					DATA = response.getDataTable();
+					processData(response.getDataTable());
 					initializeUI();
 				} )
 			});
