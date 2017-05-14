@@ -1,0 +1,46 @@
+
+.play {
+    background-image: url(icons/play.svg);
+}
+
+.pause {
+    background-image: url(icons/pause.svg);
+}
+
+.menu {
+    background-image: url(icons/menu.svg);
+}
+
+.forward {
+    background-image: url(icons/forward.svg);
+}
+
+.back {
+    background-image: url(icons/back.svg);
+}
+
+.again {
+    background-image: url(icons/again.svg);
+}
+
+
+.play,
+.pause,
+.menu,
+.forward,
+.back,
+.again,
+.buttonicon {
+    background-color: white;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: none;
+    cursor: pointer;
+    height: 80px;
+    width: 80px;
+    vertical-align: middle;
+/*
+    align: center;
+*/
+    
+}

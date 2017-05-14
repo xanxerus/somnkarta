@@ -19,45 +19,62 @@
 	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script type="text/javascript" src="sun.js"></script>
 	<script type="text/javascript" src="karta.js"></script>
+	<link rel="stylesheet" href="karta.css">
 	
 	<script>
-	google.charts.load('current', {'packages':['corechart']});
-	google.charts.setOnLoadCallback(function(){
-		$(document).ready(function() {
-			new google.visualization.Query(URL + QUERY)
-			.send(function(response) {  
-				DATA = response.getDataTable();
-				initializeUI();
-			} )
+		$(document).ready(function(){$('#menu').toggle( 'blind', {}, 0);});
+		google.charts.load('current', {'packages':['corechart']});
+		google.charts.setOnLoadCallback(function(){
+			$(document).ready(function() {
+				new google.visualization.Query(URL + QUERY)
+				.send(function(response) {
+					DATA = response.getDataTable();
+					initializeUI();
+				} )
+			});
 		});
-	});
 	</script>
 	
 </head>
 
 <body>
-<div class="container">
 	<div class="mapcontainer mapael">
-		<div class="map"><div class="mapTooltip" style="display: none;"></div></div>
+		<div class="map">
+			<div class="mapTooltip"></div>
+		</div>
 	</div>
-</div>
-<br>
-<div id="slider-range"></div>
-<br>
-	<table width="100%">
-		<col width="15%">
-		<col width="85%">
-		<tr><td>Date range:</td><td id="amount"></td>
-		<tr><td>Date:&nbsp </td><td id="date-cell">None</td></tr>
-		<tr><td>Sunset:&nbsp </td><td id="sunset-cell">None</td></tr>
-		<tr><td>Sunrise:&nbsp </td><td id="sunrise-cell">None</td></tr>
-		<tr><td>Latitude:&nbsp </td><td id="latitude-cell">None</td></tr>
-		<tr><td>Longitude:&nbsp </td><td id="longitude-cell">None</td></tr>
-	</table>
+	<div id="message" align="center"> Loading! </div>
 
-<button onclick="rangeMap()"> Go! </button>
-<button onclick="resetMap()"> Reset </button>
-<br>
+	<div align="center">
+		<input id="againbutton" type="button" class="again" onclick="buttonAgain()" />
+		<input id="backbutton" type="button" class="back" onclick="buttonBack()" />
+		<input id="playbutton" type="button" class="play" onclick="buttonPlay()" />
+		<input id="forwardbutton" type="button" class="forward" onclick="buttonForward()" />
+		<input id="menubutton" type="button" class="menu" onclick="buttonMenu()" />
+	</div>
+	
+	<div id="menu">
+		<p>
+			<div style="display: inline-block;">Date Range: </div>
+			<div style="display: inline-block;" id="date-range-msg"></div>
+		</p>
+		<div align="center" id="date-range"></div>
+
+		<p>
+			<div style="display: inline-block;">Speed (time between dots): </div>
+			<div style="display: inline-block;" id="speed-range-msg"></div>
+		</p>
+		<div align="center" id="speed-range"></div>
+
+		<p>
+			<div style="display: inline-block;">Streak (number of dots at a time): </div>
+			<div style="display: inline-block;" id="streak-range-msg"></div>
+		</p>
+		<div align="center" id="streak-range"></div>
+
+		<p><a href="https://github.com/xanxerus/somnkarta" target="_blank">About</a></p>
+
+	</div>
 
 </body>
 </html>

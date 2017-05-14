@@ -1,0 +1,27 @@
+<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
+
+ <g>
+  <title>background</title>
+  <rect fill="#fff" id="canvas_background" height="102" width="102" y="-1" x="-1"/>
+  <g display="none" overflow="visible" y="0" x="0" height="100%" width="100%" id="canvasGrid">
+   <rect fill="url(#gridpattern)" stroke-width="0" y="0" x="0" height="100%" width="100%"/>
+  </g>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
+  <g stroke="null" id="svg_21">
+   <g stroke="null" transform="matrix(0.7803042906542329,0,0,0.7806062102747787,9.992529375012378,23.158067412066863) " id="svg_20">
+    <title stroke="null" stroke-width="0" transform="translate(0,-18.57530975341797) translate(-1.2815464735031128,0) translate(6.8002471923828125,7.657464504241943) translate(0,4.7859206199646) translate(4.8573174476623535,0) translate(0,15.908477783203125) translate(16.806007385253906,0) translate(-3.937499761581421,0) translate(0,-28.125) translate(0,-0.000002145766984540387) translate(0,0.000004291533969080774) translate(0,24.749996185302734) translate(0,-0.0000013411043937594513) translate(0,-0.14053834974765778) translate(-0.09789177030324936,0) translate(0,-1.5000059604644775) translate(-0.37501060962677,0) translate(-22.499998092651367,-21.374998092651367) translate(0,4.499999046325684) translate(0,5.364417461350968e-7) translate(0,-5.364417461350968e-7) translate(-56.249996185302734,0) translate(0.000008583067938161548,0) translate(0,5.364417461350968e-7) translate(0,-5.364417461350968e-7) translate(65.24999237060547,0) translate(0,-0.0000032186505904974183) translate(-0.000011265276953054126,0) translate(-8.999999046325684,-4.499999523162842) translate(0,-53.437496185302734) translate(-111.93748474121094,0) translate(-0.000008583067938161548,0) translate(0.000008583067938161548,0) translate(-0.000008583067938161548,0) translate(0,-6.187499523162842) translate(0,-1.6874998807907104) translate(0,-0.18750141561031342) translate(0.000008583067938161548,0) translate(-0.1874971240758896,0) translate(113.12499237060547,0) translate(0,62.5) ">Layer 1</title>
+    <g stroke="null" id="svg_10">
+     <g stroke="null" id="svg_11" transform="matrix(2.643868405720095,0,0,2.400922687771575,-1.2861511926048073,68.57246315157975) ">
+      <path stroke="null" stroke-width="0" d="m12.169622,-19.407881l15.419,0c0.771,0 1.402,-0.63 1.402,-1.401l-0.001,0l0,-2.278c0,-0.771 -0.631,-1.402 -1.402,-1.402l-15.418,0c-0.771,0 -1.402,0.631 -1.402,1.402l0,2.278c0,0.771 0.631,1.401 1.402,1.401z" id="svg_14"/>
+      <path stroke="null" stroke-width="0" d="m28.989622,-7.668881c0,-0.771 -0.631,-1.401 -1.402,-1.401l-15.418,0c-0.771,0 -1.402,0.63 -1.402,1.401l0,2.277c0,0.772 0.631,1.403 1.402,1.403l15.419,0c0.771,0 1.402,-0.631 1.402,-1.402l-0.001,0l0,-2.278z" id="svg_13"/>
+      <path stroke="null" stroke-width="0" d="m28.989622,-15.377881c0,-0.771 -0.631,-1.402 -1.402,-1.402l-15.418,0c-0.771,0 -1.402,0.631 -1.402,1.402l0,2.278c0,0.771 0.631,1.402 1.401,1.402l15.419,0c0.771,0 1.402,-0.631 1.402,-1.402l-0.001,0l0,-2.278l0.001,0z" id="svg_12"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</svg>

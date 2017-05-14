@@ -32,6 +32,10 @@ This project uses three JavaScript APIs.
 * [jQuery-UI](https://github.com/jquery/jquery-ui)
 ..* MIT License (As best as I can tell)
 
+Icons are from iconfinder
+* [Menu icon](https://www.iconfinder.com/icons/216511/menu_icon#size=128)
+* [All other icons](https://www.iconfinder.com/Sakagami)
+
 Unless otherwise specified, anything outside those submodules was written by me.
 
 ## Cloning Submodules

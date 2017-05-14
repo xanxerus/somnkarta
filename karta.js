@@ -7,14 +7,12 @@ var monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
 	'July', 'August', 'September', 'October', 'November', 'December'];
 var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 
 	'Thursday', 'Friday', 'Saturday'];
-var INTERVAL_DELAY = 100;
-var MAX_DOTS = 10;
 
 //Variables
 var intervalID = -1;
-var points = [];
 var ROW = -1;
 var END = -1;
+var points = [];
 
 /**
  * Returns a string with only the year, month, and day of a given date object
@@ -47,6 +45,7 @@ function timeOnly(date){
  * Initializes an empty world map and a range slider
  */
 function initializeUI(){
+	document.getElementById("message").innerHTML = "Select a date range and press play";
 	$(".mapcontainer").mapael({
 		map: {
 			name: "world_countries",
@@ -75,41 +74,81 @@ function initializeUI(){
 		},
 	});
 
-	$( "#slider-range" ).slider({
+	$( "#date-range" ).slider({
 		range: true,
 		min: 0,
 		max: DATA.getNumberOfRows()-1,
 		values: [ 170, 591 ],
 		slide: function( event, ui ) {
-			$( "#amount" ).html( dateOnly(DATA.getValue(ui.values[0],0)) + " to " + dateOnly(DATA.getValue(ui.values[1],0)));
+			$( "#date-range-msg" ).html( dateOnly(DATA.getValue(ui.values[0],0)) + " to " + dateOnly(DATA.getValue(ui.values[1],0)));
 		}
 	});
-	
-	$( "#amount" ).html(dateOnly(DATA.getValue($("#slider-range").slider("values", 0),0)) + " to " + dateOnly(DATA.getValue($( "#slider-range" ).slider( "values", 1 ),0)));
+
+	$( "#speed-range" ).slider({
+		range: 'min',
+		min: 0,
+		max: 1000,
+		value: 100,
+		slide: function( event, ui ) {
+			$( "#speed-range-msg" ).html( ui.value + " ms" );
+		}
+	});
+
+	$( "#streak-range" ).slider({
+		range: 'min',
+		min: 0,
+		max: 20,
+		value: 10,
+		slide: function( event, ui ) {
+			$( "#streak-range-msg" ).html( ui.value + " dots" );
+		}
+	});
+
+	$( "#date-range-msg" ).html(dateOnly(DATA.getValue($("#date-range").slider("values", 0),0)) + " to " + dateOnly(DATA.getValue($( "#date-range" ).slider( "values", 1 ),0)));
+	$( "#speed-range-msg" ).html($("#speed-range").slider("value") + " ms");
+	$( "#streak-range-msg" ).html($("#streak-range").slider("value") + " dots");
+
 }
 
-/**
- * Starts the iteration through the map using the dates given by the UI
- */
-function rangeMap(){
-	ROW = $("#slider-range").slider("values", 0);
-	END = $("#slider-range").slider("values", 1);
-	intervalID = setInterval(updateMap, INTERVAL_DELAY);
+function buttonPlay(){
+	if(intervalID < 0){ //play button
+		document.getElementById('playbutton').className = 'pause';
+		if(ROW < 0)
+			ROW = $("#date-range").slider("values", 0);
+		END = $("#date-range").slider("values", 1);
+		intervalID = setInterval(updateMap, $("#speed-range").slider("value"));
+	}
+	else{ //pause button
+		document.getElementById('playbutton').className = 'play';
+		clearInterval(intervalID);
+		intervalID = -1;
+	}
 }
 
-/**
- * Resets the map and stops the iteration of points
- */
-function resetMap(){
-	clearInterval(intervalID);
+function buttonAgain(){
+	$('#message')[0].innerHTML = 'Again!';
+	$(".mapcontainer").trigger('update', [{deletePlotKeys:"all"}]);
 	ROW = -1;
 	END = -1;
-	$(".mapcontainer").trigger('update', [{deletePlotKeys:"all"}]);
-	document.getElementById("date-cell").innerHTML = "None";
-	document.getElementById("sunset-cell").innerHTML = "None";
-	document.getElementById("sunrise-cell").innerHTML = "None";
-	document.getElementById("latitude-cell").innerHTML = "None";
-	document.getElementById("longitude-cell").innerHTML = "None";
+	if(intervalID >= 0)
+		buttonPlay();
+}
+
+function buttonBack(){
+	$('#message')[0].innerHTML = 'Back! Back I say!';
+	if(intervalID >= 0)
+		buttonPlay();
+}
+
+function buttonForward(){
+	$('#message')[0].innerHTML = 'Furthermore!';
+	if(intervalID >= 0)
+		buttonPlay();
+	updateMap();
+}
+
+function buttonMenu(){
+	$('#menu').toggle( 'blind', {}, 500);
 }
 
 /**
@@ -121,16 +160,16 @@ function updateMap(){
 	ROW++;
 	
 	//remove a point if there are too many or we are winding down.
-	if(points.length > MAX_DOTS || ROW > END && points.length > 0)
+	if(points.length > $("#streak-range").slider("value") || ROW > END && points.length > 0)
 		$(".mapcontainer").trigger('update', [{ 
 			deletePlotKeys: [points.shift().toString()], 
-			animDuration: INTERVAL_DELAY 
+			animDuration: $("#speed-range").slider("value") 
 		}]);
 
 	//stop if we are done and all points are gone
 	if(ROW > END){
 		if(points.length == 0)
-			clearInterval(intervalID);
+			buttonAgain();
 		return;
 	}
 
@@ -146,8 +185,9 @@ function updateMap(){
 	//calculate the point on Earth with the corresponding times
 	var g = inverse_riseset(sleep, wake);
 
+	document.getElementById("message").innerHTML = dateOnly(DATA.getValue(ROW, 0));
+	/**
 	//update the UI
-	document.getElementById("date-cell").innerHTML = dateOnly(DATA.getValue(ROW, 0));
 	document.getElementById("sunset-cell").innerHTML = sleep;
 	document.getElementById("sunrise-cell").innerHTML = wake;
 	
@@ -161,6 +201,7 @@ function updateMap(){
 
 	document.getElementById("latitude-cell").innerHTML = g.lat;
 	document.getElementById("longitude-cell").innerHTML = g.lon;
+	*/
 
 	//add the point to th em
 	var name = Number(ROW).toString();
@@ -176,6 +217,6 @@ function updateMap(){
 
 	$(".mapcontainer").trigger('update', [{
 		newPlots: newPlots, 
-		animDuration: INTERVAL_DELAY
+		animDuration: $("#speed-range").slider("value")
 	}]);
 }
