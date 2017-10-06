@@ -14,7 +14,7 @@ Demos/Demo.html demonstrates some aspects of the algorithm involved.
 
 Near the Equinoxes in March and September, the duration of the night approaches
 uniformity across latitudes and it becomes impossible to find points
-on the Earth whose sunrise and sunset times are too large or too small.
+on the Earth whose sunrise and sunset times are too close or too far apart.
 
 In somnkarta.html, we ignore those days, so there will be second-long pauses
 and a message to the console. If you have a better idea, let me know.
